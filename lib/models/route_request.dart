@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum RouteType { sms, voice }
 
-enum SmsRouteType { p2p, a2p, greyRoute }
+enum SmsRouteType { direct, hq, localBypass, sim, casino, spam, local }
 
-enum VoiceRouteType { cli, nonCli, tollfree, premium }
+enum VoiceRouteType { cli, nonCli, cc, tdm }
 
 enum RequestStatus {
   pending,
@@ -25,8 +25,10 @@ class RouteRequest {
   final String country;
   final String operator;
   final RouteType routeType;
-  final SmsRouteType? smsRouteType; // set when routeType == sms
-  final VoiceRouteType? voiceRouteType; // set when routeType == voice
+  final SmsRouteType? smsRouteType;
+  final VoiceRouteType? voiceRouteType;
+  final double? targetRate;
+  final double? actualRate;
   final RequestStatus status;
   final RequestPriority priority;
   final String? notes;
@@ -42,6 +44,8 @@ class RouteRequest {
     required this.routeType,
     this.smsRouteType,
     this.voiceRouteType,
+    this.targetRate,
+    this.actualRate,
     required this.status,
     required this.priority,
     this.notes,
@@ -69,6 +73,8 @@ class RouteRequest {
           routeType == RouteType.voice && d['voiceRouteType'] != null
           ? VoiceRouteType.values.byName(d['voiceRouteType'] as String)
           : null,
+      targetRate: (d['targetRate'] as num?)?.toDouble(),
+      actualRate: (d['actualRate'] as num?)?.toDouble(),
       status: RequestStatus.values.byName(d['status'] as String),
       priority: RequestPriority.values.byName(d['priority'] as String),
       notes: d['notes'] as String?,
@@ -82,11 +88,13 @@ class RouteRequest {
     'accountManager': accountManager,
     'country': country,
     'operator': operator,
-    'routeType': routeType.name,
-    'smsRouteType': smsRouteType?.name,
-    'voiceRouteType': voiceRouteType?.name,
-    'status': status.name,
-    'priority': priority.name,
+    'routeType': routeType.toString().split('.').last,
+    'smsRouteType': smsRouteType?.toString().split('.').last,
+    'voiceRouteType': voiceRouteType?.toString().split('.').last,
+    'targetRate': targetRate,
+    'actualRate': actualRate,
+    'status': status.toString().split('.').last,
+    'priority': priority.toString().split('.').last,
     'notes': notes,
     'createdAt': Timestamp.fromDate(createdAt),
     'updatedAt': Timestamp.fromDate(updatedAt),
@@ -100,6 +108,8 @@ class RouteRequest {
     RouteType? routeType,
     SmsRouteType? smsRouteType,
     VoiceRouteType? voiceRouteType,
+    double? targetRate,
+    double? actualRate,
     RequestStatus? status,
     RequestPriority? priority,
     String? notes,
@@ -113,6 +123,8 @@ class RouteRequest {
     routeType: routeType ?? this.routeType,
     smsRouteType: smsRouteType ?? this.smsRouteType,
     voiceRouteType: voiceRouteType ?? this.voiceRouteType,
+    targetRate: targetRate ?? this.targetRate,
+    actualRate: actualRate ?? this.actualRate,
     status: status ?? this.status,
     priority: priority ?? this.priority,
     notes: notes ?? this.notes,

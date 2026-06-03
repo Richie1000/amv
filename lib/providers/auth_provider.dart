@@ -33,6 +33,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> register(String email, String password) async {
+    _set(loading: true, error: null);
+    try {
+      await _authService.register(email, password);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _set(error: _message(e.code));
+      return false;
+    } finally {
+      _set(loading: false);
+    }
+  }
+
   Future<void> signOut() => _authService.signOut();
 
   Future<bool> resetPassword(String email) async {
