@@ -6,11 +6,13 @@ import '../../providers/auth_provider.dart';
 import '../../screens/app_shell.dart';
 import '../../screens/create_request_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/promo_screen.dart';
 import '../../screens/register_screen.dart';
 import '../../screens/request_detail_screen.dart';
 import '../../screens/requests_screen.dart';
 
 abstract class AppRoutes {
+  static const promo = '/promo';
   static const login = '/login';
   static const register = '/register';
   static const dashboard = '/dashboard';
@@ -28,16 +30,20 @@ GoRouter createRouter(BuildContext context) {
 
   return GoRouter(
     navigatorKey: _rootKey,
-    initialLocation: AppRoutes.dashboard,
+    initialLocation: AppRoutes.promo,
     refreshListenable: auth,
     redirect: (context, state) {
       final loc = state.matchedLocation;
-      final onAuth = loc == AppRoutes.login || loc == AppRoutes.register;
+      final onAuth =
+          loc == AppRoutes.login ||
+          loc == AppRoutes.register ||
+          loc == AppRoutes.promo;
       if (!auth.isAuthenticated && !onAuth) return AppRoutes.login;
       if (auth.isAuthenticated && onAuth) return AppRoutes.dashboard;
       return null;
     },
     routes: [
+      GoRoute(path: AppRoutes.promo, builder: (_, __) => const PromoScreen()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,

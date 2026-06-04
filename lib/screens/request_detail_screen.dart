@@ -102,10 +102,17 @@ class _DetailView extends StatelessWidget {
                     ? '$currency ${request.targetRate!.toStringAsFixed(4)}'
                     : '—',
               ),
+              _Row('Supplier', request.supplierName ?? '—'),
               _Row(
-                'Actual Rate',
-                request.actualRate != null
-                    ? '$currency ${request.actualRate!.toStringAsFixed(4)}'
+                'Supplier Rate',
+                request.supplierRate != null
+                    ? '$currency ${request.supplierRate!.toStringAsFixed(4)}'
+                    : '—',
+              ),
+              _Row(
+                'Selling Rate',
+                request.sellingRate != null
+                    ? '$currency ${request.sellingRate!.toStringAsFixed(4)}'
                     : '—',
               ),
             ],
@@ -262,18 +269,37 @@ class _StatusActions extends StatelessWidget {
   }
 
   Future<void> _onTap(BuildContext context, RequestStatus status) async {
-    // Traffic Confirmed requires actualRate
-    if (status == RequestStatus.trafficConfirmed &&
-        request.actualRate == null) {
-      final rate = await _showActualRateDialog(context);
-      if (rate == null || !context.mounted) return;
-      await context.read<RequestProvider>().updateStatus(
-        request.copyWith(actualRate: rate),
-        status,
+    RouteRequest updated = request;
+
+    // Moving to Supplier Found → prompt for supplier name + rate
+    if (status == RequestStatus.supplierFound && request.supplierRate == null) {
+      final result = await _showSupplierDialog(context);
+      if (result == null || !context.mounted) return;
+      updated = updated.copyWith(
+        supplierName: result.$1,
+        supplierRate: result.$2,
       );
-    } else {
-      await context.read<RequestProvider>().updateStatus(request, status);
     }
+
+    // Moving to Traffic Confirmed or Closed → prompt for selling rate
+    final needsSellingRate =
+        (status == RequestStatus.trafficConfirmed ||
+            status == RequestStatus.closed) &&
+        request.sellingRate == null;
+
+    if (needsSellingRate) {
+      final rate = await _showRateDialog(
+        context,
+        title: 'Enter Selling Rate',
+        subtitle: 'Selling rate is required to proceed.',
+        label: 'Selling Rate',
+        currency: request.isSms ? 'EUR' : 'USD',
+      );
+      if (rate == null || !context.mounted) return;
+      updated = updated.copyWith(sellingRate: rate);
+    }
+
+    await context.read<RequestProvider>().updateStatus(updated, status);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -286,25 +312,97 @@ class _StatusActions extends StatelessWidget {
     }
   }
 
-  Future<double?> _showActualRateDialog(BuildContext context) {
-    final ctrl = TextEditingController();
+  Future<(String, double)?> _showSupplierDialog(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final rateCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final currency = request.isSms ? 'EUR' : 'USD';
+
+    return showDialog<(String, double)>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Supplier Details'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Supplier Name',
+                  prefixIcon: Icon(Icons.business_outlined),
+                ),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Supplier name is required.'
+                    : null,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                controller: rateCtrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: 'Supplier Rate',
+                  suffixText: currency,
+                  prefixIcon: const Icon(Icons.attach_money),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Rate is required.';
+                  if (double.tryParse(v.trim()) == null)
+                    return 'Enter a valid number.';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(dialogContext).pop((
+                  nameCtrl.text.trim(),
+                  double.parse(rateCtrl.text.trim()),
+                ));
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<double?> _showRateDialog(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String label,
+    required String currency,
+  }) {
+    final ctrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
 
     return showDialog<double>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Enter Actual Rate'),
+        title: Text(title),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Actual rate is required to confirm traffic.',
-                style: AppTextStyles.bodyMedium,
-              ),
+              Text(subtitle, style: AppTextStyles.bodyMedium),
               const SizedBox(height: AppSpacing.lg),
               TextFormField(
                 controller: ctrl,
@@ -313,7 +411,7 @@ class _StatusActions extends StatelessWidget {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Actual Rate',
+                  labelText: label,
                   suffixText: currency,
                   prefixIcon: const Icon(Icons.attach_money),
                 ),

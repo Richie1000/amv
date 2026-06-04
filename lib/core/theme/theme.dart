@@ -772,27 +772,27 @@ class AppStatusStyles {
       label: 'Pending',
       icon: Icons.schedule_outlined,
     ),
-    'searching_supplier': StatusStyle(
+    'searchingSupplier': StatusStyle(
       color: AppColors.statusSearching,
       label: 'Searching Supplier',
       icon: Icons.search_outlined,
     ),
-    'supplier_found': StatusStyle(
+    'supplierFound': StatusStyle(
       color: AppColors.statusFound,
       label: 'Supplier Found',
       icon: Icons.check_circle_outline,
     ),
-    'sent_to_customer': StatusStyle(
+    'sentToCustomer': StatusStyle(
       color: AppColors.statusSent,
       label: 'Sent to Customer',
       icon: Icons.send_outlined,
     ),
-    'traffic_confirmed': StatusStyle(
+    'trafficConfirmed': StatusStyle(
       color: AppColors.statusConfirmed,
       label: 'Traffic Confirmed',
       icon: Icons.traffic_outlined,
     ),
-    'no_traffic': StatusStyle(
+    'noTraffic': StatusStyle(
       color: AppColors.statusNoTraffic,
       label: 'No Traffic',
       icon: Icons.block_outlined,
@@ -810,22 +810,22 @@ class AppStatusStyles {
       label: 'Testing',
       icon: Icons.science_outlined,
     ),
-    'low_traffic': StatusStyle(
+    'lowTraffic': StatusStyle(
       color: AppColors.warning,
       label: 'Low Traffic',
       icon: Icons.signal_cellular_0_bar_outlined,
     ),
-    'stable_traffic': StatusStyle(
+    'stableTraffic': StatusStyle(
       color: AppColors.success,
       label: 'Stable Traffic',
       icon: Icons.signal_cellular_4_bar,
     ),
-    'high_traffic': StatusStyle(
+    'highTraffic': StatusStyle(
       color: AppColors.statusConfirmed,
       label: 'High Traffic',
       icon: Icons.trending_up,
     ),
-    'no_traffic': StatusStyle(
+    'noTraffic': StatusStyle(
       color: AppColors.error,
       label: 'No Traffic',
       icon: Icons.signal_cellular_off_outlined,

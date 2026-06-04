@@ -28,7 +28,9 @@ class RouteRequest {
   final SmsRouteType? smsRouteType;
   final VoiceRouteType? voiceRouteType;
   final double? targetRate;
-  final double? actualRate;
+  final double? supplierRate;
+  final String? supplierName;
+  final double? sellingRate;
   final RequestStatus status;
   final RequestPriority priority;
   final String? notes;
@@ -45,7 +47,9 @@ class RouteRequest {
     this.smsRouteType,
     this.voiceRouteType,
     this.targetRate,
-    this.actualRate,
+    this.supplierRate,
+    this.supplierName,
+    this.sellingRate,
     required this.status,
     required this.priority,
     this.notes,
@@ -74,7 +78,9 @@ class RouteRequest {
           ? VoiceRouteType.values.byName(d['voiceRouteType'] as String)
           : null,
       targetRate: (d['targetRate'] as num?)?.toDouble(),
-      actualRate: (d['actualRate'] as num?)?.toDouble(),
+      supplierRate: (d['supplierRate'] as num?)?.toDouble(),
+      supplierName: d['supplierName'] as String?,
+      sellingRate: (d['sellingRate'] as num?)?.toDouble(),
       status: RequestStatus.values.byName(d['status'] as String),
       priority: RequestPriority.values.byName(d['priority'] as String),
       notes: d['notes'] as String?,
@@ -92,7 +98,9 @@ class RouteRequest {
     'smsRouteType': smsRouteType?.toString().split('.').last,
     'voiceRouteType': voiceRouteType?.toString().split('.').last,
     'targetRate': targetRate,
-    'actualRate': actualRate,
+    'supplierRate': supplierRate,
+    'supplierName': supplierName,
+    'sellingRate': sellingRate,
     'status': status.toString().split('.').last,
     'priority': priority.toString().split('.').last,
     'notes': notes,
@@ -109,7 +117,9 @@ class RouteRequest {
     SmsRouteType? smsRouteType,
     VoiceRouteType? voiceRouteType,
     double? targetRate,
-    double? actualRate,
+    double? supplierRate,
+    String? supplierName,
+    double? sellingRate,
     RequestStatus? status,
     RequestPriority? priority,
     String? notes,
@@ -124,7 +134,9 @@ class RouteRequest {
     smsRouteType: smsRouteType ?? this.smsRouteType,
     voiceRouteType: voiceRouteType ?? this.voiceRouteType,
     targetRate: targetRate ?? this.targetRate,
-    actualRate: actualRate ?? this.actualRate,
+    supplierRate: supplierRate ?? this.supplierRate,
+    supplierName: supplierName ?? this.supplierName,
+    sellingRate: sellingRate ?? this.sellingRate,
     status: status ?? this.status,
     priority: priority ?? this.priority,
     notes: notes ?? this.notes,
