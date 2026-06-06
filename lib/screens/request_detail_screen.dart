@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/route_request.dart';
+import '../../providers/followup_provider.dart';
 import '../../providers/request_provider.dart';
 import '../core/theme/theme.dart';
 
@@ -271,7 +272,18 @@ class _StatusActions extends StatelessWidget {
   Future<void> _onTap(BuildContext context, RequestStatus status) async {
     RouteRequest updated = request;
 
-    // Moving to Supplier Found → prompt for supplier name + rate
+    // Sent to Customer → schedule follow-up reminder
+    if (status == RequestStatus.sentToCustomer) {
+      final duration = await _showReminderPicker(context);
+      if (duration == null || !context.mounted) return;
+      final scheduledAt = DateTime.now().add(duration);
+      await context.read<FollowupProvider>().createForRequest(
+        request: request,
+        scheduledAt: scheduledAt,
+      );
+    }
+
+    // Supplier Found → prompt supplier name + rate
     if (status == RequestStatus.supplierFound && request.supplierRate == null) {
       final result = await _showSupplierDialog(context);
       if (result == null || !context.mounted) return;
@@ -281,7 +293,7 @@ class _StatusActions extends StatelessWidget {
       );
     }
 
-    // Moving to Traffic Confirmed or Closed → prompt for selling rate
+    // Traffic Confirmed or Closed → prompt selling rate
     final needsSellingRate =
         (status == RequestStatus.trafficConfirmed ||
             status == RequestStatus.closed) &&
@@ -310,6 +322,38 @@ class _StatusActions extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Future<Duration?> _showReminderPicker(BuildContext context) {
+    return showDialog<Duration>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('Remind me in...'),
+        children: [
+          _ReminderOption(
+            label: '1 Hour',
+            duration: const Duration(hours: 1),
+            context: dialogContext,
+          ),
+          _ReminderOption(
+            label: '4 Hours',
+            duration: const Duration(hours: 4),
+            context: dialogContext,
+          ),
+          _ReminderOption(
+            label: 'Tomorrow (9:00 AM)',
+            duration: _untilTomorrow9am(),
+            context: dialogContext,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Duration _untilTomorrow9am() {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1, 9, 0);
+    return tomorrow.difference(now);
   }
 
   Future<(String, double)?> _showSupplierDialog(BuildContext context) {
@@ -528,6 +572,29 @@ class _Row extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReminderOption extends StatelessWidget {
+  const _ReminderOption({
+    required this.label,
+    required this.duration,
+    required this.context,
+  });
+
+  final String label;
+  final Duration duration;
+  final BuildContext context;
+
+  @override
+  Widget build(BuildContext ctx) {
+    return SimpleDialogOption(
+      onPressed: () => Navigator.of(context).pop(duration),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Text(label, style: AppTextStyles.titleMedium),
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/app_shell.dart';
 import '../../screens/create_request_screen.dart';
+import '../../screens/followup_screen.dart';
+import '../../screens/history_screen.dart';
 import '../../screens/login_screen.dart';
 import '../../screens/promo_screen.dart';
 import '../../screens/register_screen.dart';
@@ -43,7 +45,11 @@ GoRouter createRouter(BuildContext context) {
       return null;
     },
     routes: [
-      GoRoute(path: AppRoutes.promo, builder: (_, __) => const PromoScreen()),
+      GoRoute(
+        path: AppRoutes.promo,
+        parentNavigatorKey: _rootKey,
+        builder: (_, __) => const PromoScreen(),
+      ),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,
@@ -80,11 +86,11 @@ GoRouter createRouter(BuildContext context) {
           ),
           GoRoute(
             path: AppRoutes.followups,
-            builder: (_, __) => const _P('Follow-ups'),
+            builder: (_, __) => const FollowupsScreen(),
           ),
           GoRoute(
             path: AppRoutes.history,
-            builder: (_, __) => const _P('History'),
+            builder: (_, __) => const HistoryScreen(),
           ),
         ],
       ),

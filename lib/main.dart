@@ -4,15 +4,19 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'core/routes/routes.dart';
-import 'core/theme/theme.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/followup_provider.dart';
+import 'providers/history_provider.dart';
 import 'providers/request_provider.dart';
+import 'core/services/notification_service.dart';
+import 'core/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService.instance.init();
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -21,6 +25,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RequestProvider()),
+        ChangeNotifierProvider(create: (_) => FollowupProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
       ],
       child: const RouteFlowApp(),
     ),
