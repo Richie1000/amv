@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/app_shell.dart';
 import '../../screens/create_request_screen.dart';
+import '../../screens/dashboard_screen.dart';
 import '../../screens/followup_screen.dart';
 import '../../screens/history_screen.dart';
 import '../../screens/login_screen.dart';
@@ -62,7 +63,7 @@ GoRouter createRouter(BuildContext context) {
         routes: [
           GoRoute(
             path: AppRoutes.dashboard,
-            builder: (_, __) => const _P('Dashboard'),
+            builder: (_, __) => const DashboardScreen(),
           ),
           GoRoute(
             path: AppRoutes.requests,
