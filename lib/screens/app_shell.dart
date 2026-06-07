@@ -1,11 +1,11 @@
-import 'package:amv/core/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
-import '../core/theme/theme.dart';
+import '../core/routes/routes.dart';
 import '../core/theme/responsive.dart';
+import '../core/theme/theme.dart';
+import '../providers/auth_provider.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
@@ -25,10 +25,10 @@ class AppShell extends StatelessWidget {
       path: AppRoutes.requests,
     ),
     (
-      icon: Icons.business_outlined,
-      activeIcon: Icons.business,
-      label: 'Suppliers',
-      path: AppRoutes.suppliers,
+      icon: Icons.campaign_outlined,
+      activeIcon: Icons.campaign,
+      label: 'Promotions',
+      path: AppRoutes.promotions,
     ),
     (
       icon: Icons.notifications_none,

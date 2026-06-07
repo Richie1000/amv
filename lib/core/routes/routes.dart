@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../screens/app_shell.dart';
+import '../../screens/create_promotion_screen.dart';
 import '../../screens/create_request_screen.dart';
 import '../../screens/dashboard_screen.dart';
 import '../../screens/followup_screen.dart';
 import '../../screens/history_screen.dart';
 import '../../screens/login_screen.dart';
-import '../../screens/promo_screen.dart';
+import '../../screens/promotions_screen.dart';
+import '../../screens/promotion_detail_screen.dart';
 import '../../screens/register_screen.dart';
 import '../../screens/request_detail_screen.dart';
 import '../../screens/requests_screen.dart';
@@ -20,7 +22,8 @@ abstract class AppRoutes {
   static const register = '/register';
   static const dashboard = '/dashboard';
   static const requests = '/requests';
-  static const suppliers = '/suppliers';
+  static const promotions = '/promotions';
+  static const createPromotion = '/promotions/new';
   static const followups = '/followups';
   static const history = '/history';
 }
@@ -49,12 +52,19 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
         path: AppRoutes.promo,
         parentNavigatorKey: _rootKey,
-        builder: (_, __) => const PromoScreen(),
+        builder: (_, __) => const PromotionsScreen(),
       ),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
         path: AppRoutes.register,
         builder: (_, __) => const RegisterScreen(),
+      ),
+
+      // Create promotion — full screen above shell
+      GoRoute(
+        path: AppRoutes.createPromotion,
+        parentNavigatorKey: _rootKey,
+        builder: (_, __) => const CreatePromotionScreen(),
       ),
 
       ShellRoute(
@@ -82,8 +92,15 @@ GoRouter createRouter(BuildContext context) {
             ],
           ),
           GoRoute(
-            path: AppRoutes.suppliers,
-            builder: (_, __) => const _P('Suppliers'),
+            path: AppRoutes.promotions,
+            builder: (_, __) => const PromotionsScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, s) =>
+                    PromotionDetailScreen(promotionId: s.pathParameters['id']!),
+              ),
+            ],
           ),
           GoRoute(
             path: AppRoutes.followups,
@@ -96,17 +113,7 @@ GoRouter createRouter(BuildContext context) {
         ],
       ),
     ],
-    errorBuilder: (_, state) => _P('404 – ${state.error}'),
-  );
-}
-
-class _P extends StatelessWidget {
-  const _P(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(label)),
-    body: Center(child: Text(label)),
+    errorBuilder: (_, state) =>
+        Scaffold(body: Center(child: Text('404 – ${state.error}'))),
   );
 }
