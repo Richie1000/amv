@@ -80,6 +80,12 @@ class QuickActionsSheet extends StatelessWidget {
                     ],
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  color: AppColors.textSecondary,
+                  tooltip: 'Close',
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ],
             ),
 

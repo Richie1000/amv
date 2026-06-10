@@ -229,6 +229,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
     SmsRouteType.casino => 'Casino',
     SmsRouteType.spam => 'Spam',
     SmsRouteType.local => 'Local',
+    SmsRouteType.ss7 => 'SS7',
   };
 
   String _voiceLabel(VoiceRouteType v) => switch (v) {

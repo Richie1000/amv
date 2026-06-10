@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum RouteType { sms, voice }
 
-enum SmsRouteType { direct, hq, localBypass, sim, casino, spam, local }
+enum SmsRouteType { direct, hq, localBypass, sim, casino, spam, local, ss7 }
 
 enum VoiceRouteType { cli, nonCli, cc, tdm }
 
