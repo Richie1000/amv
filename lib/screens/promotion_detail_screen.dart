@@ -260,24 +260,149 @@ class _LinkedRequests extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Match requests by country/operator overlap with promotion destinations
     final allRequests = context.watch<RequestProvider>().all;
-    final countries = promotion.destinations.map((d) => d.country).toSet();
     final linked = allRequests
-        .where((r) => countries.contains(r.country))
-        .take(5)
+        .where((r) => r.promotionId == promotion.id)
         .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(label: 'Linked Requests'),
+        Row(
+          children: [
+            _SectionHeader(label: 'Linked Requests'),
+            const Spacer(),
+            TextButton.icon(
+              icon: const Icon(Icons.link, size: 16),
+              label: const Text('Link Request'),
+              onPressed: () => _showLinkSheet(context, allRequests),
+            ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (linked.isEmpty)
-          Text('No matching requests found.', style: AppTextStyles.bodyMedium)
+          Text('No linked requests yet.', style: AppTextStyles.bodyMedium)
         else
           ...linked.map((r) => _LinkedRequestTile(request: r)),
       ],
+    );
+  }
+
+  Future<void> _showLinkSheet(
+    BuildContext context,
+    List<RouteRequest> allRequests,
+  ) async {
+    final unlinked = allRequests.where((r) => r.promotionId == null).toList();
+
+    if (unlinked.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All requests are already linked.')),
+      );
+      return;
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) =>
+          _LinkRequestSheet(promotion: promotion, requests: unlinked),
+    );
+  }
+}
+
+// ── Link request sheet ────────────────────────────────────────────────────────
+
+class _LinkRequestSheet extends StatefulWidget {
+  const _LinkRequestSheet({required this.promotion, required this.requests});
+
+  final Promotion promotion;
+  final List<RouteRequest> requests;
+
+  @override
+  State<_LinkRequestSheet> createState() => _LinkRequestSheetState();
+}
+
+class _LinkRequestSheetState extends State<_LinkRequestSheet> {
+  RouteRequest? _selected;
+  final _commentCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_selected == null) return;
+    await context.read<RequestProvider>().linkToPromotion(
+      _selected!,
+      widget.promotion.id,
+      _commentCtrl.text.trim().isEmpty ? null : _commentCtrl.text.trim(),
+    );
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        MediaQuery.of(context).viewInsets.bottom + AppSpacing.x3l,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Link Request', style: AppTextStyles.headlineSmall),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Select a route request to link to this promotion.',
+            style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          DropdownButtonFormField<RouteRequest>(
+            value: _selected,
+            dropdownColor: AppColors.bgElevated,
+            decoration: const InputDecoration(
+              labelText: 'Route Request',
+              prefixIcon: Icon(Icons.swap_horiz_outlined),
+            ),
+            items: widget.requests
+                .map(
+                  (r) => DropdownMenuItem(
+                    value: r,
+                    child: Text(
+                      '${r.customerName}  ·  ${r.country}  ·  ${r.operator}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) => setState(() => _selected = v),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextFormField(
+            controller: _commentCtrl,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Comment (optional)',
+              hintText: 'Why is this request linked to this promotion?',
+              alignLabelWithHint: true,
+              prefixIcon: Icon(Icons.comment_outlined),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _selected == null ? null : _submit,
+              child: const Text('Link Request'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

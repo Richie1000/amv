@@ -31,6 +31,8 @@ class RouteRequest {
   final double? supplierRate;
   final String? supplierName;
   final double? sellingRate;
+  final String? promotionId;
+  final String? promotionComment;
   final RequestStatus status;
   final RequestPriority priority;
   final String? notes;
@@ -50,6 +52,8 @@ class RouteRequest {
     this.supplierRate,
     this.supplierName,
     this.sellingRate,
+    this.promotionId,
+    this.promotionComment,
     required this.status,
     required this.priority,
     this.notes,
@@ -81,6 +85,8 @@ class RouteRequest {
       supplierRate: (d['supplierRate'] as num?)?.toDouble(),
       supplierName: d['supplierName'] as String?,
       sellingRate: (d['sellingRate'] as num?)?.toDouble(),
+      promotionId: d['promotionId'] as String?,
+      promotionComment: d['promotionComment'] as String?,
       status: RequestStatus.values.byName(d['status'] as String),
       priority: RequestPriority.values.byName(d['priority'] as String),
       notes: d['notes'] as String?,
@@ -101,6 +107,8 @@ class RouteRequest {
     'supplierRate': supplierRate,
     'supplierName': supplierName,
     'sellingRate': sellingRate,
+    'promotionId': promotionId,
+    'promotionComment': promotionComment,
     'status': status.toString().split('.').last,
     'priority': priority.toString().split('.').last,
     'notes': notes,
@@ -120,6 +128,8 @@ class RouteRequest {
     double? supplierRate,
     String? supplierName,
     double? sellingRate,
+    String? promotionId,
+    String? promotionComment,
     RequestStatus? status,
     RequestPriority? priority,
     String? notes,
@@ -137,6 +147,8 @@ class RouteRequest {
     supplierRate: supplierRate ?? this.supplierRate,
     supplierName: supplierName ?? this.supplierName,
     sellingRate: sellingRate ?? this.sellingRate,
+    promotionId: promotionId ?? this.promotionId,
+    promotionComment: promotionComment ?? this.promotionComment,
     status: status ?? this.status,
     priority: priority ?? this.priority,
     notes: notes ?? this.notes,

@@ -99,6 +99,23 @@ class RequestProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> linkToPromotion(
+    RouteRequest request,
+    String promotionId,
+    String? comment,
+  ) async {
+    _set(error: null);
+    try {
+      await _repo.update(
+        request.copyWith(promotionId: promotionId, promotionComment: comment),
+      );
+      return true;
+    } catch (e) {
+      _set(error: 'Failed to link request.');
+      return false;
+    }
+  }
+
   void _set({bool? loading, String? error}) {
     if (loading != null) isLoading = loading;
     this.error = error;
