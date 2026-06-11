@@ -10,8 +10,9 @@ import '../../screens/dashboard_screen.dart';
 import '../../screens/followup_screen.dart';
 import '../../screens/history_screen.dart';
 import '../../screens/login_screen.dart';
-import '../../screens/promotions_screen.dart';
 import '../../screens/promotion_detail_screen.dart';
+import '../../screens/promotions_screen.dart';
+import '../../screens/push_list_screen.dart';
 import '../../screens/register_screen.dart';
 import '../../screens/request_detail_screen.dart';
 import '../../screens/requests_screen.dart';
@@ -26,6 +27,7 @@ abstract class AppRoutes {
   static const createPromotion = '/promotions/new';
   static const followups = '/followups';
   static const history = '/history';
+  static const pushList = '/pushlist';
 }
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -109,6 +111,10 @@ GoRouter createRouter(BuildContext context) {
           GoRoute(
             path: AppRoutes.history,
             builder: (_, __) => const HistoryScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.pushList,
+            builder: (_, __) => const PushListScreen(),
           ),
         ],
       ),

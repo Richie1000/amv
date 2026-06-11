@@ -42,6 +42,12 @@ class AppShell extends StatelessWidget {
       label: 'History',
       path: AppRoutes.history,
     ),
+    (
+      icon: Icons.list_alt_outlined,
+      activeIcon: Icons.list_alt,
+      label: 'Push List',
+      path: AppRoutes.pushList,
+    ),
   ];
 
   int _index(BuildContext ctx) {
