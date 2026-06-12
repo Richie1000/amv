@@ -5,14 +5,14 @@ import 'package:uuid/uuid.dart';
 
 import '../core/repository/pushlist_repository.dart';
 import '../models/promotion.dart';
-import '../models/route_request.dart';
 import '../models/push_list_item.dart';
+import '../models/route_request.dart';
 
 class PushListProvider extends ChangeNotifier {
   PushListProvider() {
     _sub = _repo.watchAll().listen(
       (list) {
-        _items = list.cast<PushListItem>();
+        _items = list;
         error = null;
         notifyListeners();
       },
@@ -28,19 +28,96 @@ class PushListProvider extends ChangeNotifier {
 
   List<PushListItem> _items = [];
   String? error;
+  String query = '';
 
-  List<PushListItem> get all => _items;
+  List<PushListItem> get all => _search(_items);
 
-  // ── Grouped: SMS → subtype → items ───────────────────────────────────────
+  Map<String, List<PushListItem>> get groupedSms =>
+      _groupBySubType(_search(_items).where((i) => i.isSms).toList());
 
-  Map<String, List<PushListItem>> get groupedSms {
-    final smsItems = _items.where((i) => i.isSms).toList();
-    return _groupBySubType(smsItems);
+  Map<String, List<PushListItem>> get groupedVoice =>
+      _groupBySubType(_search(_items).where((i) => i.isVoice).toList());
+
+  void search(String q) {
+    query = q.toLowerCase().trim();
+    notifyListeners();
   }
 
-  Map<String, List<PushListItem>> get groupedVoice {
-    final voiceItems = _items.where((i) => i.isVoice).toList();
-    return _groupBySubType(voiceItems);
+  // ── Duplicate check ───────────────────────────────────────────────────────
+
+  bool _isDuplicate(
+    String country,
+    String operator,
+    RouteType routeType,
+    SmsRouteType? smsRouteType,
+    VoiceRouteType? voiceRouteType,
+  ) => _items.any(
+    (i) =>
+        i.country.toLowerCase() == country.toLowerCase() &&
+        i.operator.toLowerCase() == operator.toLowerCase() &&
+        i.routeType == routeType &&
+        i.smsRouteType == smsRouteType &&
+        i.voiceRouteType == voiceRouteType,
+  );
+
+  // ── Add ───────────────────────────────────────────────────────────────────
+
+  Future<String?> add({
+    required String country,
+    required String operator,
+    required RouteType routeType,
+    SmsRouteType? smsRouteType,
+    VoiceRouteType? voiceRouteType,
+    required String supplierName,
+    required double supplierRate,
+    required double sellingRate,
+    String? comment,
+    required PushListSource sourceType,
+    String? sourceId,
+  }) async {
+    if (_isDuplicate(
+      country,
+      operator,
+      routeType,
+      smsRouteType,
+      voiceRouteType,
+    )) {
+      return 'This route is already in the push list.';
+    }
+    await _repo.add(
+      PushListItem(
+        id: const Uuid().v4(),
+        country: country,
+        operator: operator,
+        routeType: routeType,
+        smsRouteType: routeType == RouteType.sms ? smsRouteType : null,
+        voiceRouteType: routeType == RouteType.voice ? voiceRouteType : null,
+        supplierName: supplierName,
+        supplierRate: supplierRate,
+        sellingRate: sellingRate,
+        comment: comment?.isEmpty == true ? null : comment,
+        sourceType: sourceType,
+        sourceId: sourceId,
+        addedAt: DateTime.now(),
+      ),
+    );
+    return null;
+  }
+
+  Future<void> remove(String id) => _repo.remove(id);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  List<PushListItem> _search(List<PushListItem> items) {
+    if (query.isEmpty) return items;
+    return items
+        .where(
+          (i) =>
+              i.country.toLowerCase().contains(query) ||
+              i.operator.toLowerCase().contains(query) ||
+              i.supplierName.toLowerCase().contains(query),
+        )
+        .toList();
   }
 
   Map<String, List<PushListItem>> _groupBySubType(List<PushListItem> items) {
@@ -53,75 +130,6 @@ class PushListProvider extends ChangeNotifier {
     }
     return map;
   }
-
-  // ── Add from request ──────────────────────────────────────────────────────
-
-  Future<void> addFromRequest(RouteRequest request) async {
-    final item = PushListItem(
-      id: const Uuid().v4(),
-      country: request.country,
-      operator: request.operator,
-      routeType: request.routeType,
-      smsRouteType: request.smsRouteType,
-      voiceRouteType: request.voiceRouteType,
-      rate: request.supplierRate ?? request.targetRate,
-      supplierName: request.supplierName,
-      sourceType: PushListSource.request,
-      sourceId: request.id,
-      addedAt: DateTime.now(),
-    );
-    await _repo.add(item);
-  }
-
-  // ── Add from promotion destination ────────────────────────────────────────
-
-  Future<void> addFromPromotion(
-    PromotionDestination dest,
-    String promotionId,
-  ) async {
-    final item = PushListItem(
-      id: const Uuid().v4(),
-      country: dest.country,
-      operator: dest.operator,
-      routeType: dest.routeType,
-      smsRouteType: dest.smsRouteType,
-      voiceRouteType: dest.voiceRouteType,
-      rate: dest.rate,
-      supplierName: dest.supplierName,
-      sourceType: PushListSource.promotion,
-      sourceId: promotionId,
-      addedAt: DateTime.now(),
-    );
-    await _repo.add(item);
-  }
-
-  // ── Add manually ──────────────────────────────────────────────────────────
-
-  Future<void> addManual({
-    required String country,
-    required String operator,
-    required RouteType routeType,
-    SmsRouteType? smsRouteType,
-    VoiceRouteType? voiceRouteType,
-    double? rate,
-    String? supplierName,
-  }) async {
-    final item = PushListItem(
-      id: const Uuid().v4(),
-      country: country,
-      operator: operator,
-      routeType: routeType,
-      smsRouteType: routeType == RouteType.sms ? smsRouteType : null,
-      voiceRouteType: routeType == RouteType.voice ? voiceRouteType : null,
-      rate: rate,
-      supplierName: supplierName,
-      sourceType: PushListSource.manual,
-      addedAt: DateTime.now(),
-    );
-    await _repo.add(item);
-  }
-
-  Future<void> remove(String id) => _repo.remove(id);
 
   @override
   void dispose() {

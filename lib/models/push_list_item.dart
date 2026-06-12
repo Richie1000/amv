@@ -13,10 +13,12 @@ class PushListItem {
   final RouteType routeType;
   final SmsRouteType? smsRouteType;
   final VoiceRouteType? voiceRouteType;
-  final double? rate;
-  final String? supplierName;
+  final String supplierName;
+  final double supplierRate;
+  final double sellingRate;
+  final String? comment;
   final PushListSource sourceType;
-  final String? sourceId; // requestId or promotionId
+  final String? sourceId;
   final DateTime addedAt;
 
   const PushListItem({
@@ -26,8 +28,10 @@ class PushListItem {
     required this.routeType,
     this.smsRouteType,
     this.voiceRouteType,
-    this.rate,
-    this.supplierName,
+    required this.supplierName,
+    required this.supplierRate,
+    required this.sellingRate,
+    this.comment,
     required this.sourceType,
     this.sourceId,
     required this.addedAt,
@@ -51,8 +55,10 @@ class PushListItem {
       voiceRouteType: rt == RouteType.voice && d['voiceRouteType'] != null
           ? VoiceRouteType.values.byName(d['voiceRouteType'] as String)
           : null,
-      rate: (d['rate'] as num?)?.toDouble(),
-      supplierName: d['supplierName'] as String?,
+      supplierName: d['supplierName'] as String,
+      supplierRate: (d['supplierRate'] as num).toDouble(),
+      sellingRate: (d['sellingRate'] as num).toDouble(),
+      comment: d['comment'] as String?,
       sourceType: PushListSource.values.byName(d['sourceType'] as String),
       sourceId: d['sourceId'] as String?,
       addedAt: (d['addedAt'] as Timestamp).toDate(),
@@ -65,8 +71,10 @@ class PushListItem {
     'routeType': _n(routeType),
     'smsRouteType': smsRouteType != null ? _n(smsRouteType!) : null,
     'voiceRouteType': voiceRouteType != null ? _n(voiceRouteType!) : null,
-    'rate': rate,
     'supplierName': supplierName,
+    'supplierRate': supplierRate,
+    'sellingRate': sellingRate,
+    'comment': comment,
     'sourceType': _n(sourceType),
     'sourceId': sourceId,
     'addedAt': Timestamp.fromDate(addedAt),
