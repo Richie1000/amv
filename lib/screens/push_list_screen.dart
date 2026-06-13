@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/services/export_services.dart';
 import '../core/theme/theme.dart';
 import '../models/promotion.dart';
 import '../models/push_list_item.dart';
@@ -57,6 +58,15 @@ class _PushListScreenState extends State<PushListScreen> {
       appBar: AppBar(
         title: const Text('Push List'),
         actions: [
+          Consumer<PushListProvider>(
+            builder: (_, provider, __) => provider.all.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.file_download_outlined),
+                    tooltip: 'Export to Excel',
+                    onPressed: () => _export(context, provider.all),
+                  )
+                : const SizedBox.shrink(),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'Add Route',
@@ -176,6 +186,50 @@ class _PushListScreenState extends State<PushListScreen> {
       isScrollControlled: true,
       builder: (_) => const _AddRouteSheet(),
     );
+  }
+
+  Future<void> _export(BuildContext context, List<PushListItem> items) async {
+    // Show loading
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Exporting...'),
+          ],
+        ),
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final path = await ExportService.instance.exportPushList(items);
+      messenger.hideCurrentSnackBar();
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Saved to $path'),
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () => messenger.hideCurrentSnackBar(),
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.hideCurrentSnackBar();
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Export failed: $e')));
+    }
   }
 }
 
